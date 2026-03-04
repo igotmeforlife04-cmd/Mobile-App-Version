@@ -671,10 +671,9 @@ const Navbar = ({ user, onLogout }: { user: UserData | null; onLogout: () => voi
               <img 
                 src="https://static.wixstatic.com/media/225ce0_770c0e789f0348bda3ee004f32a8fb0c~mv2.png/v1/crop/x_244,y_190,w_518,h_479/fill/w_108,h_100,fp_0.50_0.50,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/Untitled%20design.png" 
                 alt="VA CORE SUPPORT APP Logo" 
-                className="w-10 h-10 object-contain"
+                className="h-12 w-auto object-contain"
                 referrerPolicy="no-referrer"
               />
-              <span className="text-xl font-bold text-zinc-900 tracking-tight">VA CORE SUPPORT APP</span>
             </Link>
           </div>
 
@@ -2667,10 +2666,9 @@ export default function App() {
                     <img 
                       src="https://static.wixstatic.com/media/225ce0_770c0e789f0348bda3ee004f32a8fb0c~mv2.png/v1/crop/x_244,y_190,w_518,h_479/fill/w_108,h_100,fp_0.50_0.50,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/Untitled%20design.png" 
                       alt="VA CORE SUPPORT APP Logo" 
-                      className="w-6 h-6 object-contain"
+                      className="h-8 w-auto object-contain"
                       referrerPolicy="no-referrer"
                     />
-                    <span className="font-bold text-zinc-900">VA CORE SUPPORT APP</span>
                   </div>
                   <p className="text-sm text-zinc-400">© 2026 VA CORE SUPPORT APP. All rights reserved.</p>
                 </div>
