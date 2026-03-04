@@ -1,7 +1,7 @@
 {
   "name": "Remix VA Job Board",
   "short_name": "Remix VA",
-  "start_url": "/",
+  "start_url": "https://vacoresupport-lyart.vercel.app/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#0d9488",
@@ -16,5 +16,6 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ]
+  ],
+  "description": "VA Core Support Provides best Virtual Assistance for Va"
 }
