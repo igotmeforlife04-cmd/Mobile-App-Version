@@ -865,9 +865,24 @@ const LandingPage = ({ user }: { user: UserData | null }) => {
     <div className="min-h-screen bg-white font-sans">
       {/* Hero Section */}
       <div className="max-w-7xl mx-auto px-4 py-20 text-center">
-        <h1 className="text-4xl md:text-5xl font-bold text-zinc-800 mb-16">
-          The Job Board for Virtual<br />Workers in the Philippines.
+        <h1 className="text-4xl md:text-5xl font-bold text-zinc-800 mb-8">
+          Hire with Confidence. Pay for Results.
         </h1>
+
+        <div className="flex flex-col md:flex-row justify-center gap-8 mb-16 text-zinc-600">
+          <div className="flex items-center gap-2 justify-center">
+            <CheckCircle className="w-5 h-5 text-emerald-500" />
+            <span className="font-medium">Verified Talent</span>
+          </div>
+          <div className="flex items-center gap-2 justify-center">
+            <CheckCircle className="w-5 h-5 text-emerald-500" />
+            <span className="font-medium">Secure Payments</span>
+          </div>
+          <div className="flex items-center gap-2 justify-center">
+            <CheckCircle className="w-5 h-5 text-emerald-500" />
+            <span className="font-medium">Satisfaction Guarantee</span>
+          </div>
+        </div>
 
         <div className="flex flex-col md:flex-row justify-center gap-8 max-w-4xl mx-auto">
           <div className="flex-1">
@@ -2435,11 +2450,33 @@ const AuthRedirect = ({ user }: { user: UserData | null }) => {
   return null;
 };
 
+const SplashScreen = () => (
+  <motion.div
+    initial={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    transition={{ duration: 0.5 }}
+    className="fixed inset-0 z-[100] flex items-center justify-center bg-white"
+  >
+    <img
+      src="https://drive.google.com/uc?export=view&id=1JbDlSCHDEOhXVGG9jMPIt82yG7hSX6R6"
+      alt="Loading..."
+      className="w-64 h-64 object-contain"
+      referrerPolicy="no-referrer"
+    />
+  </motion.div>
+);
+
 // --- Main App ---
 
 export default function App() {
   const [user, setUser] = useState<UserData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [splashLoading, setSplashLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setSplashLoading(false), 2500);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     // Check active session
@@ -2470,7 +2507,7 @@ export default function App() {
         };
         setUser(userData);
       }
-      setLoading(false);
+      setAuthLoading(false);
     });
 
     // Listen for auth changes
@@ -2536,106 +2573,112 @@ export default function App() {
     setUser(null);
   };
 
-  if (loading) return null;
-
   return (
-    <Router>
-      <AuthRedirect user={user} />
-      <div className="min-h-screen bg-zinc-50 font-sans selection:bg-indigo-100 selection:text-indigo-900">
-        <Navbar user={user} onLogout={handleLogout} />
-        
-        <main>
-          <Routes>
-            <Route path="/" element={<LandingPage user={user} />} />
-            <Route path="/jobs" element={<JobsPage user={user} />} />
-            <Route path="/jobs/:id" element={<JobDetailsPage user={user} />} />
-            <Route path="/talents" element={<TalentSearchPage />} />
-            <Route path="/real-reviews" element={<RealReviewsPage />} />
-            <Route path="/pricing" element={<PricingPage user={user} onUpdateUser={setUser} />} />
-            <Route path="/subscription" element={<SubscriptionPage user={user} />} />
-            <Route path="/assessments" element={<SkillAssessmentPage user={user} />} />
+    <>
+      <AnimatePresence>
+        {(authLoading || splashLoading) && <SplashScreen key="splash" />}
+      </AnimatePresence>
+      
+      {!authLoading && !splashLoading && (
+        <Router>
+          <AuthRedirect user={user} />
+          <div className="min-h-screen bg-zinc-50 font-sans selection:bg-indigo-100 selection:text-indigo-900">
+            <Navbar user={user} onLogout={handleLogout} />
             
-            {/* Onboarding Routes */}
-            <Route path="/onboarding/worker" element={user && user.role === 'JOB_SEEKER' ? <WorkerOnboarding user={user} onComplete={() => window.location.reload()} /> : <Navigate to="/" />} />
-            <Route path="/onboarding/employer" element={user && user.role === 'EMPLOYER' ? <EmployerOnboarding user={user} onComplete={() => window.location.reload()} /> : <Navigate to="/" />} />
+            <main>
+              <Routes>
+                <Route path="/" element={<LandingPage user={user} />} />
+                <Route path="/jobs" element={<JobsPage user={user} />} />
+                <Route path="/jobs/:id" element={<JobDetailsPage user={user} />} />
+                <Route path="/talents" element={<TalentSearchPage />} />
+                <Route path="/real-reviews" element={<RealReviewsPage />} />
+                <Route path="/pricing" element={<PricingPage user={user} onUpdateUser={setUser} />} />
+                <Route path="/subscription" element={<SubscriptionPage user={user} />} />
+                <Route path="/assessments" element={<SkillAssessmentPage user={user} />} />
+                
+                {/* Onboarding Routes */}
+                <Route path="/onboarding/worker" element={user && user.role === 'JOB_SEEKER' ? <WorkerOnboarding user={user} onComplete={() => window.location.reload()} /> : <Navigate to="/" />} />
+                <Route path="/onboarding/employer" element={user && user.role === 'EMPLOYER' ? <EmployerOnboarding user={user} onComplete={() => window.location.reload()} /> : <Navigate to="/" />} />
 
-            {/* Admin Routes */}
-            <Route path="/admin" element={<AdminGuard user={user}><AdminLayout user={user!} /></AdminGuard>}>
-              <Route index element={<Navigate to="/admin/dashboard" replace />} />
-              <Route path="dashboard" element={<AdminGuard user={user} permission="can_view_analytics"><AdminOverview /></AdminGuard>} />
-              <Route path="users" element={<AdminGuard user={user} permission="can_manage_users"><AdminUsers admin={user!} /></AdminGuard>} />
-              <Route path="employers" element={<AdminGuard user={user} permission="can_manage_users"><AdminUsers admin={user!} filterRole="EMPLOYER" /></AdminGuard>} />
-              <Route path="jobs" element={<AdminGuard user={user} permission="can_manage_jobs"><AdminJobs admin={user!} /></AdminGuard>} />
-              <Route path="subscriptions" element={<AdminGuard user={user} permission="can_manage_subscriptions"><AdminSubscriptions /></AdminGuard>} />
-              <Route path="payments" element={<AdminGuard user={user} permission="can_manage_subscriptions"><AdminPayments /></AdminGuard>} />
-              <Route path="reports" element={<AdminGuard user={user} permission="can_manage_jobs"><AdminReports admin={user!} /></AdminGuard>} />
-              <Route path="analytics" element={<AdminGuard user={user} permission="can_view_analytics"><AdminAnalytics /></AdminGuard>} />
-              <Route path="settings" element={<AdminGuard user={user} permission="can_manage_settings"><AdminSettings /></AdminGuard>} />
-              <Route path="audit-logs" element={<AdminGuard user={user} permission="view_audit_logs"><AdminAuditLogs /></AdminGuard>} />
-            </Route>
+                {/* Admin Routes */}
+                <Route path="/admin" element={<AdminGuard user={user}><AdminLayout user={user!} /></AdminGuard>}>
+                  <Route index element={<Navigate to="/admin/dashboard" replace />} />
+                  <Route path="dashboard" element={<AdminGuard user={user} permission="can_view_analytics"><AdminOverview /></AdminGuard>} />
+                  <Route path="users" element={<AdminGuard user={user} permission="can_manage_users"><AdminUsers admin={user!} /></AdminGuard>} />
+                  <Route path="employers" element={<AdminGuard user={user} permission="can_manage_users"><AdminUsers admin={user!} filterRole="EMPLOYER" /></AdminGuard>} />
+                  <Route path="jobs" element={<AdminGuard user={user} permission="can_manage_jobs"><AdminJobs admin={user!} /></AdminGuard>} />
+                  <Route path="subscriptions" element={<AdminGuard user={user} permission="can_manage_subscriptions"><AdminSubscriptions /></AdminGuard>} />
+                  <Route path="payments" element={<AdminGuard user={user} permission="can_manage_subscriptions"><AdminPayments /></AdminGuard>} />
+                  <Route path="reports" element={<AdminGuard user={user} permission="can_manage_jobs"><AdminReports admin={user!} /></AdminGuard>} />
+                  <Route path="analytics" element={<AdminGuard user={user} permission="can_view_analytics"><AdminAnalytics /></AdminGuard>} />
+                  <Route path="settings" element={<AdminGuard user={user} permission="can_manage_settings"><AdminSettings /></AdminGuard>} />
+                  <Route path="audit-logs" element={<AdminGuard user={user} permission="view_audit_logs"><AdminAuditLogs /></AdminGuard>} />
+                </Route>
 
-            <Route path="/login" element={user ? <Navigate to="/" /> : <LoginPage onLogin={handleLogin} />} />
-            <Route path="/register" element={user ? <Navigate to="/" /> : <RegisterPage onLogin={handleLogin} />} />
-            
-            {/* Protected Routes */}
-            <Route path="/employer" element={user?.role === 'EMPLOYER' ? <EmployerDashboard user={user} /> : <Navigate to="/login" />} />
-            <Route path="/va" element={user?.role === 'JOB_SEEKER' ? <VADashboard user={user} /> : <Navigate to="/login" />} />
-            
-            {/* Fallback */}
-            <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
-        </main>
+                <Route path="/login" element={user ? <Navigate to="/" /> : <LoginPage onLogin={handleLogin} />} />
+                <Route path="/register" element={user ? <Navigate to="/" /> : <RegisterPage onLogin={handleLogin} />} />
+                
+                {/* Protected Routes */}
+                <Route path="/employer" element={user?.role === 'EMPLOYER' ? <EmployerDashboard user={user} /> : <Navigate to="/login" />} />
+                <Route path="/va" element={user?.role === 'JOB_SEEKER' ? <VADashboard user={user} /> : <Navigate to="/login" />} />
+                
+                {/* Fallback */}
+                <Route path="*" element={<Navigate to="/" />} />
+              </Routes>
+            </main>
 
-        <footer className="bg-white border-t border-zinc-200 py-12 mt-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
-              <div>
-                <h4 className="font-bold text-zinc-900 mb-4">Platform</h4>
-                <ul className="space-y-2 text-sm text-zinc-500">
-                  <li><Link to="/jobs" className="hover:text-indigo-600">Find Jobs</Link></li>
-                  <li><Link to="/talents" className="hover:text-indigo-600">Find Talent</Link></li>
-                  <li><Link to="/pricing" className="hover:text-indigo-600">Pricing</Link></li>
-                </ul>
+            <footer className="bg-white border-t border-zinc-200 py-12 mt-20">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+                  <div>
+                    <h4 className="font-bold text-zinc-900 mb-4">Platform</h4>
+                    <ul className="space-y-2 text-sm text-zinc-500">
+                      <li><Link to="/jobs" className="hover:text-indigo-600">Find Jobs</Link></li>
+                      <li><Link to="/talents" className="hover:text-indigo-600">Find Talent</Link></li>
+                      <li><Link to="/pricing" className="hover:text-indigo-600">Pricing</Link></li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-zinc-900 mb-4">Support</h4>
+                    <ul className="space-y-2 text-sm text-zinc-500">
+                      <li><Link to="/help" className="hover:text-indigo-600">Help Center</Link></li>
+                      <li><Link to="/contact" className="hover:text-indigo-600">Contact Us</Link></li>
+                      <li><Link to="/safety" className="hover:text-indigo-600">Safety & Trust</Link></li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-zinc-900 mb-4">Company</h4>
+                    <ul className="space-y-2 text-sm text-zinc-500">
+                      <li><Link to="/about" className="hover:text-indigo-600">About Us</Link></li>
+                      <li><Link to="/blog" className="hover:text-indigo-600">Blog</Link></li>
+                      <li><Link to="/careers" className="hover:text-indigo-600">Careers</Link></li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-zinc-900 mb-4">Legal</h4>
+                    <ul className="space-y-2 text-sm text-zinc-500">
+                      <li><Link to="/terms" className="hover:text-indigo-600">Terms of Service</Link></li>
+                      <li><Link to="/privacy" className="hover:text-indigo-600">Privacy Policy</Link></li>
+                    </ul>
+                  </div>
+                </div>
+                <div className="pt-8 border-t border-zinc-100 flex flex-col md:flex-row justify-between items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <img 
+                      src="https://static.wixstatic.com/media/225ce0_770c0e789f0348bda3ee004f32a8fb0c~mv2.png/v1/crop/x_244,y_190,w_518,h_479/fill/w_108,h_100,fp_0.50_0.50,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/Untitled%20design.png" 
+                      alt="VAHub Logo" 
+                      className="w-6 h-6 object-contain"
+                      referrerPolicy="no-referrer"
+                    />
+                    <span className="font-bold text-zinc-900">VAHub</span>
+                  </div>
+                  <p className="text-sm text-zinc-400">© 2026 VAHub Marketplace. All rights reserved.</p>
+                </div>
               </div>
-              <div>
-                <h4 className="font-bold text-zinc-900 mb-4">Support</h4>
-                <ul className="space-y-2 text-sm text-zinc-500">
-                  <li><Link to="/help" className="hover:text-indigo-600">Help Center</Link></li>
-                  <li><Link to="/contact" className="hover:text-indigo-600">Contact Us</Link></li>
-                  <li><Link to="/safety" className="hover:text-indigo-600">Safety & Trust</Link></li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-bold text-zinc-900 mb-4">Company</h4>
-                <ul className="space-y-2 text-sm text-zinc-500">
-                  <li><Link to="/about" className="hover:text-indigo-600">About Us</Link></li>
-                  <li><Link to="/blog" className="hover:text-indigo-600">Blog</Link></li>
-                  <li><Link to="/careers" className="hover:text-indigo-600">Careers</Link></li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-bold text-zinc-900 mb-4">Legal</h4>
-                <ul className="space-y-2 text-sm text-zinc-500">
-                  <li><Link to="/terms" className="hover:text-indigo-600">Terms of Service</Link></li>
-                  <li><Link to="/privacy" className="hover:text-indigo-600">Privacy Policy</Link></li>
-                </ul>
-              </div>
-            </div>
-            <div className="pt-8 border-t border-zinc-100 flex flex-col md:flex-row justify-between items-center gap-4">
-              <div className="flex items-center gap-2">
-                <img 
-                  src="https://static.wixstatic.com/media/225ce0_770c0e789f0348bda3ee004f32a8fb0c~mv2.png/v1/crop/x_244,y_190,w_518,h_479/fill/w_108,h_100,fp_0.50_0.50,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/Untitled%20design.png" 
-                  alt="VAHub Logo" 
-                  className="w-6 h-6 object-contain"
-                  referrerPolicy="no-referrer"
-                />
-                <span className="font-bold text-zinc-900">VAHub</span>
-              </div>
-              <p className="text-sm text-zinc-400">© 2026 VAHub Marketplace. All rights reserved.</p>
-            </div>
+            </footer>
           </div>
-        </footer>
-      </div>
-    </Router>
+        </Router>
+      )}
+    </>
   );
 }
