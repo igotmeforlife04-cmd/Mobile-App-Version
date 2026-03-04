@@ -1,6 +1,6 @@
 {
-  "name": "Remix VA Job Board",
-  "short_name": "Remix VA",
+  "name": "VA CORE SUPPORT APP",
+  "short_name": "VA CORE SUPPORT",
   "start_url": "https://vacoresupport-lyart.vercel.app/",
   "display": "standalone",
   "background_color": "#ffffff",
