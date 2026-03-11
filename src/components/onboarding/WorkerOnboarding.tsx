@@ -7,7 +7,7 @@ import { ArrowRight, CheckCircle, Loader2 } from 'lucide-react';
 
 interface WorkerOnboardingProps {
   user: UserData;
-  onComplete: () => void;
+  onComplete: (user: UserData) => void;
 }
 
 export const WorkerOnboarding: React.FC<WorkerOnboardingProps> = ({ user, onComplete }) => {
@@ -52,24 +52,27 @@ export const WorkerOnboarding: React.FC<WorkerOnboardingProps> = ({ user, onComp
     setError(null);
 
     try {
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({
+      const res = await fetch('/api/onboarding/worker', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: user.id,
           first_name: formData.firstName,
           last_name: formData.lastName,
           bio: formData.bio,
-          detailed_skills: {
-            category: formData.selectedCategory,
-            roles: formData.selectedRoles,
-          },
-          // Ensure the profile is marked as complete if you have a flag, 
-          // or just rely on the presence of these fields.
+          category: formData.selectedCategory,
+          roles: formData.selectedRoles,
         })
-        .eq('id', user.id);
+      });
 
-      if (updateError) throw updateError;
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to update profile');
+      }
 
-      onComplete();
+      const { user: updatedUser } = await res.json();
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      onComplete(updatedUser);
       navigate('/va'); // Redirect to VA dashboard
     } catch (err: any) {
       console.error('Error updating profile:', err);
@@ -101,7 +104,7 @@ export const WorkerOnboarding: React.FC<WorkerOnboardingProps> = ({ user, onComp
     <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-4">
       <div className="bg-white max-w-2xl w-full rounded-3xl shadow-xl overflow-hidden border border-zinc-200">
         <div className="bg-teal-600 p-8 text-white text-center">
-          <h1 className="text-3xl font-bold mb-2">Welcome to VAHub!</h1>
+          <h1 className="text-3xl font-bold mb-2">Welcome to VA CORE SUPPORT!</h1>
           <p className="text-teal-100">Let's set up your profile to help you find the perfect job.</p>
         </div>
 

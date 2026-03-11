@@ -6,7 +6,7 @@ import { ArrowRight, Loader2 } from 'lucide-react';
 
 interface EmployerOnboardingProps {
   user: UserData;
-  onComplete: () => void;
+  onComplete: (user: UserData) => void;
 }
 
 export const EmployerOnboarding: React.FC<EmployerOnboardingProps> = ({ user, onComplete }) => {
@@ -32,19 +32,26 @@ export const EmployerOnboarding: React.FC<EmployerOnboardingProps> = ({ user, on
     setError(null);
 
     try {
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({
+      const res = await fetch('/api/onboarding/employer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: user.id,
           first_name: formData.firstName,
           last_name: formData.lastName,
           company_name: formData.companyName,
-          company_website: formData.companyWebsite,
+          website: formData.companyWebsite,
         })
-        .eq('id', user.id);
+      });
 
-      if (updateError) throw updateError;
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to update profile');
+      }
 
-      onComplete();
+      const { user: updatedUser } = await res.json();
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      onComplete(updatedUser);
       navigate('/employer'); // Redirect to Employer dashboard
     } catch (err: any) {
       console.error('Error updating profile:', err);
@@ -58,7 +65,7 @@ export const EmployerOnboarding: React.FC<EmployerOnboardingProps> = ({ user, on
     <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-4">
       <div className="bg-white max-w-2xl w-full rounded-3xl shadow-xl overflow-hidden border border-zinc-200">
         <div className="bg-indigo-600 p-8 text-white text-center">
-          <h1 className="text-3xl font-bold mb-2">Welcome to VAHub!</h1>
+          <h1 className="text-3xl font-bold mb-2">Welcome to VA CORE SUPPORT!</h1>
           <p className="text-indigo-100">Let's set up your company profile to start hiring.</p>
         </div>
 

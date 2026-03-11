@@ -104,7 +104,7 @@ export const AdminSettings = () => {
           <div className="space-y-6">
             <div>
               <label className="block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-2">Platform Name</label>
-              <input type="text" defaultValue="VAHub Marketplace" className="w-full p-3 bg-zinc-50 border border-zinc-100 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500" />
+              <input type="text" defaultValue="VA CORE SUPPORT Marketplace" className="w-full p-3 bg-zinc-50 border border-zinc-100 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500" />
             </div>
             <div>
               <label className="block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-2">Support Email</label>

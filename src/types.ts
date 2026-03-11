@@ -32,6 +32,7 @@ export interface UserData {
     plan: string;
     status: string;
     periodEnd?: string;
+    invoice_url?: string;
   };
   // Profile fields
   first_name?: string;

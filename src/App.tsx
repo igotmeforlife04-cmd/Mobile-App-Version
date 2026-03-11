@@ -84,6 +84,9 @@ import {
 
 import { WorkerOnboarding } from './components/onboarding/WorkerOnboarding';
 import { EmployerOnboarding } from './components/onboarding/EmployerOnboarding';
+import { EmployerDashboard } from './components/employer/EmployerDashboard';
+import { VADashboard } from './components/va/VADashboard';
+import { VCSAdmin } from './components/admin/VCSAdmin';
 
 // RBAC Helper
 export const hasPermission = (user: UserData | null, permission: Permission): boolean => {
@@ -641,8 +644,47 @@ const JobDetailsPage = ({ user }: { user: UserData | null }) => {
 };
 
 const RealReviewsPage = () => {
+  const reviews = [
+    {
+      name: "Sarah Jenkins",
+      role: "E-commerce Founder",
+      quote: "Before VA Core Support, I was drowning in customer service emails and order fulfillment issues. Finding my VA, Maria, changed everything. She handles the day-to-day operations flawlessly, allowing me to focus on product development. We've doubled our revenue in 6 months.",
+      rating: 5
+    },
+    {
+      name: "David Chen",
+      role: "Digital Agency Owner",
+      quote: "The quality of talent on this platform is unmatched. I hired a graphic designer and a social media manager within a week. They integrated into our team seamlessly and their work ethic is incredible. It's the best hiring decision I've made.",
+      rating: 5
+    },
+    {
+      name: "Amanda Brooks",
+      role: "Real Estate Broker",
+      quote: "I was skeptical about hiring virtually, but the process was so easy. My VA manages my calendar, follows up with leads, and handles all the paperwork. I've reclaimed at least 20 hours a week and my closing rate has improved because I'm more focused.",
+      rating: 5
+    },
+    {
+      name: "Marcus Johnson",
+      role: "Tech Startup CEO",
+      quote: "We needed specialized developers but couldn't afford local rates. Through VA Core Support, we found two senior React developers who have been instrumental in launching our MVP ahead of schedule. The communication is excellent despite the timezone difference.",
+      rating: 5
+    },
+    {
+      name: "Elena Rodriguez",
+      role: "Content Creator",
+      quote: "Video editing was taking up all my time. Now I just shoot the raw footage, drop it in a shared folder, and my VA edits, adds captions, and schedules the posts across all platforms. My channel growth has exploded since I started outsourcing.",
+      rating: 5
+    },
+    {
+      name: "Tom Baker",
+      role: "Consulting Firm Partner",
+      quote: "Our administrative overhead was eating into our margins. We hired a team of three VAs for data entry, research, and basic bookkeeping. The cost savings are substantial, and the accuracy of their work is top-notch. Highly recommend this platform.",
+      rating: 5
+    }
+  ];
+
   return (
-    <div className="max-w-4xl mx-auto px-4 py-20">
+    <div className="max-w-7xl mx-auto px-4 py-20">
       <div className="text-center mb-16">
         <h1 className="text-4xl md:text-5xl font-bold text-zinc-900 mb-8 leading-tight">
           Outsourcing changes lives—and we have the proof.
@@ -651,6 +693,25 @@ const RealReviewsPage = () => {
         <p className="text-xl text-zinc-600 leading-relaxed max-w-3xl mx-auto">
           We’ve helped hundreds of founders transition from overwhelmed to empowered. By leveraging our outsourcing model, these entrepreneurs have unlocked a new level of personal and professional liberty. Here is a look at how that transformation actually looks in practice.
         </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {reviews.map((review, index) => (
+          <div key={index} className="bg-white p-8 rounded-3xl border border-zinc-200 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex text-amber-400 mb-4">
+              {[...Array(review.rating)].map((_, i) => (
+                <svg key={i} className="w-5 h-5 fill-current" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+              ))}
+            </div>
+            <p className="text-zinc-700 leading-relaxed mb-6 italic">"{review.quote}"</p>
+            <div>
+              <p className="font-bold text-zinc-900">{review.name}</p>
+              <p className="text-sm text-zinc-500">{review.role}</p>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -674,6 +735,7 @@ const Navbar = ({ user, onLogout }: { user: UserData | null; onLogout: () => voi
                 className="h-12 w-auto object-contain"
                 referrerPolicy="no-referrer"
               />
+              <span className="text-xl font-bold text-zinc-900 tracking-tight">VA Core Support</span>
             </Link>
           </div>
 
@@ -865,7 +927,7 @@ const LandingPage = ({ user }: { user: UserData | null }) => {
       {/* Hero Section */}
       <div className="max-w-7xl mx-auto px-4 py-20 text-center">
         <h1 className="text-4xl md:text-5xl font-bold text-zinc-800 mb-8">
-          Hire with Confidence. Pay for Results.
+          The Job Board for Virtual<br />Workers in the Philippines.
         </h1>
 
         <div className="flex flex-col md:flex-row justify-center gap-8 mb-16 text-zinc-600">
@@ -971,6 +1033,11 @@ const LandingPage = ({ user }: { user: UserData | null }) => {
             <div className="bg-white px-4 py-2 shadow-sm rounded-lg">I've already scaled <span className="bg-emerald-200 px-1">content production by at least a double.</span></div>
             <div className="bg-white px-4 py-2 shadow-sm rounded-lg"><span className="bg-emerald-200 px-1">grow my business</span> from 500k to nearly 1.5M today</div>
             <div className="bg-white px-4 py-2 shadow-sm rounded-lg">...really <span className="bg-emerald-200 px-1">focus on strategy and business growth.</span></div>
+            <div className="bg-white px-4 py-2 shadow-sm rounded-lg">found the perfect match in <span className="bg-emerald-200 px-1">under 48 hours.</span></div>
+            <div className="bg-white px-4 py-2 shadow-sm rounded-lg">the quality of talent is <span className="bg-emerald-200 px-1">absolutely unmatched.</span></div>
+            <div className="bg-white px-4 py-2 shadow-sm rounded-lg">my VA handles the chaos so I can <span className="bg-emerald-200 px-1">focus on scaling.</span></div>
+            <div className="bg-white px-4 py-2 shadow-sm rounded-lg"><span className="bg-emerald-200 px-1">saved over 20 hours</span> a week on admin tasks.</div>
+            <div className="bg-white px-4 py-2 shadow-sm rounded-lg">best investment I've made for my <span className="bg-emerald-200 px-1">peace of mind.</span></div>
           </div>
 
           <div className="text-center mt-12">
@@ -1068,7 +1135,7 @@ const LoginPage = ({ onLogin }: { onLogin: (user: UserData) => void }) => {
       >
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-zinc-900">Welcome Back</h1>
-          <p className="text-zinc-500">Log in to your VAHub account</p>
+          <p className="text-zinc-500">Log in to your VA CORE SUPPORT account</p>
         </div>
         
         {error && <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm mb-4">{error}</div>}
@@ -1196,7 +1263,7 @@ const RegisterPage = ({ onLogin }: { onLogin: (user: UserData) => void }) => {
       >
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-zinc-900">Create Account</h1>
-          <p className="text-zinc-500">Join the VAHub community today</p>
+          <p className="text-zinc-500">Join the VA CORE SUPPORT community today</p>
         </div>
         
         {error && <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm mb-4">{error}</div>}
@@ -1410,273 +1477,7 @@ const AdminLayout = ({ user }: { user: UserData }) => {
   );
 };
 
-const EmployerDashboard = ({ user }: { user: UserData }) => {
-  const [showPostModal, setShowPostModal] = useState(false);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [salaryMin, setSalaryMin] = useState('');
-  const [salaryMax, setSalaryMax] = useState('');
-  const [skills, setSkills] = useState('');
-  const navigate = useNavigate();
 
-  const handlePostJob = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const res = await fetch('/api/jobs', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        employer_id: user.id,
-        title,
-        description,
-        salary_min: Number(salaryMin),
-        salary_max: Number(salaryMax),
-        job_type: 'Full-time',
-        experience_level: 'Intermediate',
-        skills: skills.split(',').map(s => s.trim()).filter(s => s !== '')
-      })
-    });
-    if (res.ok) {
-      setShowPostModal(false);
-      setTitle('');
-      setDescription('');
-      setSalaryMin('');
-      setSalaryMax('');
-      setSkills('');
-      alert('Job posted! Awaiting admin approval.');
-    }
-  };
-
-  return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold text-zinc-900">Employer Dashboard</h1>
-        <button 
-          onClick={() => setShowPostModal(true)}
-          className="bg-indigo-600 text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-indigo-700 shadow-lg shadow-indigo-100"
-        >
-          <Plus className="w-5 h-5" />
-          Post New Job
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="md:col-span-2 space-y-6">
-          <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm">
-            <h2 className="text-xl font-bold text-zinc-900 mb-6">Recent Applicants</h2>
-            <div className="text-center py-12 text-zinc-500">
-              No applicants yet. Post a job to start receiving applications.
-            </div>
-          </div>
-        </div>
-        
-        <div className="space-y-6">
-          <div className="bg-indigo-600 p-6 rounded-2xl text-white shadow-xl shadow-indigo-100">
-            <h3 className="text-lg font-bold mb-2">Current Plan: {user.subscription?.plan || 'Free'}</h3>
-            <p className="text-indigo-100 text-sm mb-6">
-              {user.subscription?.plan === 'Enterprise' 
-                ? 'Unlimited job posts and candidate searches.' 
-                : 'Upgrade for more job posts and premium features.'}
-            </p>
-            <button 
-              onClick={() => navigate('/pricing')}
-              className="w-full bg-white text-indigo-600 py-2 rounded-lg font-bold hover:bg-indigo-50 transition-all"
-            >
-              {user.subscription?.plan ? 'Manage Subscription' : 'Upgrade Plan'}
-            </button>
-          </div>
-          
-          <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm">
-            <h3 className="font-bold text-zinc-900 mb-4">Quick Links</h3>
-            <div className="space-y-3">
-              <button className="w-full text-left text-sm text-zinc-600 hover:text-indigo-600 flex items-center gap-2">
-                <User className="w-4 h-4" /> Company Profile
-              </button>
-              <button className="w-full text-left text-sm text-zinc-600 hover:text-indigo-600 flex items-center gap-2">
-                <Settings className="w-4 h-4" /> Billing Settings
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Post Job Modal */}
-      <AnimatePresence>
-        {showPostModal && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowPostModal(false)}
-              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-            />
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl relative z-10 overflow-hidden"
-            >
-              <div className="p-6 border-b border-zinc-100 flex items-center justify-between">
-                <h2 className="text-xl font-bold text-zinc-900">Post a New Job</h2>
-                <button onClick={() => setShowPostModal(false)} className="text-zinc-400 hover:text-zinc-600"><X /></button>
-              </div>
-              <form onSubmit={handlePostJob} className="p-6 space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-zinc-700 mb-1">Job Title</label>
-                  <input 
-                    type="text" 
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className="w-full px-4 py-2 border border-zinc-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
-                    placeholder="e.g. Executive Virtual Assistant"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-zinc-700 mb-1">Description</label>
-                  <textarea 
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    className="w-full px-4 py-2 border border-zinc-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 h-32"
-                    placeholder="Describe the role and responsibilities..."
-                    required
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-zinc-700 mb-1">Min Salary ($/mo)</label>
-                    <input 
-                      type="number" 
-                      value={salaryMin}
-                      onChange={(e) => setSalaryMin(e.target.value)}
-                      className="w-full px-4 py-2 border border-zinc-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
-                      placeholder="500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-zinc-700 mb-1">Max Salary ($/mo)</label>
-                    <input 
-                      type="number" 
-                      value={salaryMax}
-                      onChange={(e) => setSalaryMax(e.target.value)}
-                      className="w-full px-4 py-2 border border-zinc-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
-                      placeholder="1500"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-zinc-700 mb-1">Required Skills (comma separated)</label>
-                  <input 
-                    type="text" 
-                    value={skills}
-                    onChange={(e) => setSkills(e.target.value)}
-                    className="w-full px-4 py-2 border border-zinc-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
-                    placeholder="e.g. React, Node.js, Design"
-                  />
-                </div>
-                <button className="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100">
-                  Publish Job Listing
-                </button>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-};
-
-const VADashboard = ({ user }: { user: UserData }) => {
-  const [jobs, setJobs] = useState<any[]>([]);
-
-  useEffect(() => {
-    fetch('/api/jobs').then(res => res.json()).then(setJobs);
-  }, []);
-
-  return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-zinc-900 mb-8">Welcome, {user.name}</h1>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="md:col-span-2 space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-zinc-900">Recommended Jobs</h2>
-            <Link to="/jobs" className="text-sm font-bold text-indigo-600 hover:underline">View all</Link>
-          </div>
-          
-          <div className="space-y-4">
-            {jobs.length === 0 ? (
-              <div className="bg-white p-12 text-center rounded-2xl border border-zinc-200 text-zinc-500">
-                No jobs available right now. Check back later!
-              </div>
-            ) : (
-              jobs.slice(0, 5).map((job) => (
-                <div key={job.id} className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm hover:shadow-md transition-all group">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="text-lg font-bold text-zinc-900 group-hover:text-indigo-600 transition-colors">{job.title}</h3>
-                      <p className="text-sm text-zinc-500 font-medium">{job.company_name}</p>
-                    </div>
-                    {job.is_featured ? (
-                      <span className="bg-amber-100 text-amber-700 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded">Featured</span>
-                    ) : null}
-                  </div>
-                  <p className="text-zinc-600 text-sm line-clamp-2 mb-4">{job.description}</p>
-                  <div className="flex items-center gap-4 text-sm text-zinc-500">
-                    <div className="flex items-center gap-1"><DollarSign className="w-4 h-4" /> ${job.salary_min} - ${job.salary_max}/mo</div>
-                    <div className="flex items-center gap-1"><Clock className="w-4 h-4" /> {job.job_type}</div>
-                  </div>
-                  <div className="mt-6 flex gap-3">
-                    <button className="flex-1 bg-indigo-600 text-white py-2 rounded-lg font-bold hover:bg-indigo-700 transition-all">Apply Now</button>
-                    <button className="px-3 py-2 border border-zinc-200 rounded-lg hover:bg-zinc-50 transition-all"><Clock className="w-5 h-5 text-zinc-400" /></button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm">
-            <div className="flex items-center gap-4 mb-6">
-              <div className="w-16 h-16 bg-zinc-100 rounded-full flex items-center justify-center">
-                <User className="w-8 h-8 text-zinc-400" />
-              </div>
-              <div>
-                <h3 className="font-bold text-zinc-900">{user.name}</h3>
-                <p className="text-xs text-zinc-500">Profile Strength: 45%</p>
-              </div>
-            </div>
-            <div className="w-full bg-zinc-100 h-2 rounded-full mb-6">
-              <div className="bg-indigo-600 h-2 rounded-full w-[45%]" />
-            </div>
-            <button className="w-full border border-indigo-600 text-indigo-600 py-2 rounded-lg font-bold hover:bg-indigo-50 transition-all">
-              Complete Profile
-            </button>
-          </div>
-
-          <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm">
-            <h3 className="font-bold text-zinc-900 mb-4">Your Activity</h3>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-zinc-500">Applications Sent</span>
-                <span className="font-bold text-zinc-900">0</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-zinc-500">Profile Views</span>
-                <span className="font-bold text-zinc-900">12</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-zinc-500">Shortlisted</span>
-                <span className="font-bold text-zinc-900">0</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 const PricingPage = ({ user, onUpdateUser }: { user: UserData | null, onUpdateUser: (user: UserData) => void }) => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annually'>('monthly');
@@ -1684,7 +1485,7 @@ const PricingPage = ({ user, onUpdateUser }: { user: UserData | null, onUpdateUs
 
   const handleSelectPlan = async (planName: string) => {
     if (!user) {
-      window.location.href = '/login';
+      window.location.href = '/register';
       return;
     }
     setLoading(planName);
@@ -1855,6 +1656,10 @@ const PricingPage = ({ user, onUpdateUser }: { user: UserData | null, onUpdateUs
 
                 <button 
                   onClick={() => {
+                    if (!user) {
+                      window.location.href = '/register';
+                      return;
+                    }
                     if (plan.paymentLink) {
                       window.open(plan.paymentLink, '_blank');
                     } else {
@@ -2058,7 +1863,7 @@ const TalentSearchPage = () => {
 
           <div className="bg-teal-50 p-6 rounded-3xl border border-teal-100">
             <p className="text-sm text-teal-800 font-medium italic mb-4">
-              “I'm very thankful for what OFS and Onlinejobs.ph has done for me!”
+              “I'm very thankful for what VA CORE SUPPORT has done for me!”
             </p>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-teal-200 rounded-full" />
@@ -2548,12 +2353,14 @@ export default function App() {
     const fetchSubscription = async () => {
       if (user && !user.subscription) {
         try {
-          const res = await fetch(`/api/users/${user.id}/subscription`);
-          if (res.ok) {
-            const data = await res.json();
-            if (data.subscription) {
-              setUser({ ...user, subscription: data.subscription });
-            }
+          const { data, error } = await supabase
+            .from('subscriptions')
+            .select('*, plans(name)')
+            .eq('employer_id', user.id)
+            .single();
+            
+          if (data && !error) {
+            setUser({ ...user, subscription: data });
           }
         } catch (err) {
           console.error('Failed to fetch subscription:', err);
@@ -2596,10 +2403,11 @@ export default function App() {
                 <Route path="/assessments" element={<SkillAssessmentPage user={user} />} />
                 
                 {/* Onboarding Routes */}
-                <Route path="/onboarding/worker" element={user && user.role === 'JOB_SEEKER' ? <WorkerOnboarding user={user} onComplete={() => window.location.reload()} /> : <Navigate to="/" />} />
-                <Route path="/onboarding/employer" element={user && user.role === 'EMPLOYER' ? <EmployerOnboarding user={user} onComplete={() => window.location.reload()} /> : <Navigate to="/" />} />
+                <Route path="/onboarding/worker" element={user && user.role === 'JOB_SEEKER' ? <WorkerOnboarding user={user} onComplete={handleLogin} /> : <Navigate to="/" />} />
+                <Route path="/onboarding/employer" element={user && user.role === 'EMPLOYER' ? <EmployerOnboarding user={user} onComplete={handleLogin} /> : <Navigate to="/" />} />
 
                 {/* Admin Routes */}
+                <Route path="/vcs-admin" element={<VCSAdmin user={user} />} />
                 <Route path="/admin" element={<AdminGuard user={user}><AdminLayout user={user!} /></AdminGuard>}>
                   <Route index element={<Navigate to="/admin/dashboard" replace />} />
                   <Route path="dashboard" element={<AdminGuard user={user} permission="can_view_analytics"><AdminOverview /></AdminGuard>} />
@@ -2669,6 +2477,7 @@ export default function App() {
                       className="h-8 w-auto object-contain"
                       referrerPolicy="no-referrer"
                     />
+                    <span className="font-bold text-zinc-900">VA Core Support</span>
                   </div>
                   <p className="text-sm text-zinc-400">© 2026 VA CORE SUPPORT APP. All rights reserved.</p>
                 </div>

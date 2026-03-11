@@ -21,6 +21,8 @@ db.exec(`
     user_id TEXT NOT NULL,
     headline TEXT,
     bio TEXT,
+    category TEXT,
+    roles TEXT,
     hourly_rate REAL,
     monthly_salary REAL,
     availability TEXT,
@@ -407,5 +409,13 @@ if (sampleJobsCount.count <= 1) { // Only seed if empty or just the one from pre
 }
 
 console.log("Database initialized successfully.");
+
+// Add missing columns if they don't exist
+try {
+  db.exec("ALTER TABLE va_profiles ADD COLUMN category TEXT");
+} catch (e) {}
+try {
+  db.exec("ALTER TABLE va_profiles ADD COLUMN roles TEXT");
+} catch (e) {}
 
 export default db;
