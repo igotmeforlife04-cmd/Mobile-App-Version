@@ -409,19 +409,19 @@ const ApplyModal = ({ job, user, onClose }: { job: any, user: UserData | null, o
 
     setSubmitting(true);
     try {
-      const res = await fetch('/api/applications', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          job_id: job.id,
-          va_id: user.id,
-          cover_letter: coverLetter,
-          resume_url: resumeUrl
-        })
+      const { error } = await supabase.from('applications').insert({
+        job_id: job.id,
+        va_id: user.id,
+        cover_letter: coverLetter,
+        resume_url: resumeUrl,
+        status: 'applied'
       });
-      if (res.ok) {
+      
+      if (!error) {
         setSuccess(true);
         setTimeout(onClose, 2000);
+      } else {
+        console.error('Application error:', error);
       }
     } catch (err) {
       console.error(err);
@@ -1074,25 +1074,6 @@ const LoginPage = ({ onLogin }: { onLogin: (user: UserData) => void }) => {
     setError('');
     setMessage('');
     console.log('Login attempt', { email });
-
-    // Demo Bypass
-    if (email === 'demova' && password === 'demova') {
-      console.log('Demo login successful');
-      const demoUser: UserData = {
-        id: 'demo-va-id',
-        name: 'Demo VA',
-        email: 'demova@demo.com',
-        role: 'JOB_SEEKER',
-        status: 'ACTIVE',
-        subscription_status: 'none',
-        email_verified: true,
-        created_at: new Date().toISOString()
-      };
-      onLogin(demoUser);
-      navigate('/');
-      setLoading(false);
-      return;
-    }
     
     try {
       const { data, error: authError } = await supabase.auth.signInWithPassword({
@@ -2407,7 +2388,6 @@ export default function App() {
                 <Route path="/onboarding/employer" element={user && user.role === 'EMPLOYER' ? <EmployerOnboarding user={user} onComplete={handleLogin} /> : <Navigate to="/" />} />
 
                 {/* Admin Routes */}
-                <Route path="/vcs-admin" element={<VCSAdmin user={user} />} />
                 <Route path="/admin" element={<AdminGuard user={user}><AdminLayout user={user!} /></AdminGuard>}>
                   <Route index element={<Navigate to="/admin/dashboard" replace />} />
                   <Route path="dashboard" element={<AdminGuard user={user} permission="can_view_analytics"><AdminOverview /></AdminGuard>} />
@@ -2428,6 +2408,7 @@ export default function App() {
                 {/* Protected Routes */}
                 <Route path="/employer" element={user?.role === 'EMPLOYER' ? <EmployerDashboard user={user} /> : <Navigate to="/login" />} />
                 <Route path="/va" element={user?.role === 'JOB_SEEKER' ? <VADashboard user={user} /> : <Navigate to="/login" />} />
+                <Route path="/vcs-admin" element={user?.role === 'ADMIN' ? <VCSAdmin user={user} /> : <Navigate to="/login" />} />
                 
                 {/* Fallback */}
                 <Route path="*" element={<Navigate to="/" />} />

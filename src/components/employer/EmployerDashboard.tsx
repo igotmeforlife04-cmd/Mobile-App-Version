@@ -1,15 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Plus, MessageSquare, Briefcase, Settings, X, User, FileText, CheckCircle } from 'lucide-react';
+import { Plus, MessageSquare, Briefcase, Settings, X, User, FileText, CheckCircle, Sparkles, Star } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { UserData } from '../../types';
 import * as Dialog from '@radix-ui/react-dialog';
+import { matchVAsForJob } from '../../services/aiMatching';
 
 export const EmployerDashboard = ({ user }: { user: UserData }) => {
   const [activeTab, setActiveTab] = useState<'post' | 'messages' | 'jobs' | 'profile'>('jobs');
   const [jobs, setJobs] = useState<any[]>([]);
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // AI Matching State
+  const [matchingJobId, setMatchingJobId] = useState<string | null>(null);
+  const [jobMatches, setJobMatches] = useState<Record<string, any[]>>({});
 
   // Post Job State
   const [title, setTitle] = useState('');
@@ -25,12 +30,61 @@ export const EmployerDashboard = ({ user }: { user: UserData }) => {
   useEffect(() => {
     fetchJobs();
     fetchMessages();
+    
+    const channel = supabase
+      .channel('messages')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+        setMessages(prev => [payload.new, ...prev]);
+      })
+      .subscribe();
+      
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user.id]);
 
   const fetchJobs = async () => {
     const { data } = await supabase.from('jobs').select('*').eq('employer_id', user.id);
     if (data) setJobs(data);
     setLoading(false);
+  };
+
+  const handleFindMatches = async (job: any) => {
+    if (jobMatches[job.id]) {
+      // Toggle off if already loaded
+      setJobMatches(prev => {
+        const next = { ...prev };
+        delete next[job.id];
+        return next;
+      });
+      return;
+    }
+
+    setMatchingJobId(job.id);
+    
+    // Fetch VAs
+    const { data: vas } = await supabase
+      .from('profiles')
+      .select('id, first_name, last_name, bio, category, detailed_skills')
+      .not('first_name', 'is', null)
+      .limit(20); // Limit to 20 to save tokens
+
+    if (vas && vas.length > 0) {
+      const aiResults = await matchVAsForJob(job, vas);
+      
+      const matches = vas.map(va => {
+        const aiMatch = aiResults.find((r: any) => r.vaId === va.id);
+        return {
+          ...va,
+          matchScore: aiMatch ? aiMatch.matchScore : 0,
+          aiReasoning: aiMatch ? aiMatch.reasoning : ''
+        };
+      }).filter(va => va.matchScore > 0).sort((a, b) => b.matchScore - a.matchScore);
+
+      setJobMatches(prev => ({ ...prev, [job.id]: matches }));
+    }
+    
+    setMatchingJobId(null);
   };
 
   const fetchMessages = async () => {
@@ -123,14 +177,59 @@ export const EmployerDashboard = ({ user }: { user: UserData }) => {
               ) : jobs.length > 0 ? (
                 <div className="space-y-4">
                   {jobs.map(job => (
-                    <div key={job.id} className="p-4 border border-zinc-200 rounded-xl flex justify-between items-center">
-                      <div>
-                        <h3 className="font-bold text-lg text-zinc-900">{job.title}</h3>
-                        <p className="text-sm text-zinc-500">Status: <span className="capitalize text-indigo-600 font-medium">{job.status}</span></p>
+                    <div key={job.id} className="p-4 border border-zinc-200 rounded-xl flex flex-col gap-4">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <h3 className="font-bold text-lg text-zinc-900">{job.title}</h3>
+                          <p className="text-sm text-zinc-500">Status: <span className="capitalize text-indigo-600 font-medium">{job.status}</span></p>
+                        </div>
+                        <div className="text-right flex flex-col items-end gap-2">
+                          <p className="text-sm font-medium text-zinc-900">${job.salary_min} - ${job.salary_max}/mo</p>
+                          <button 
+                            onClick={() => handleFindMatches(job)}
+                            disabled={matchingJobId === job.id}
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                              jobMatches[job.id] 
+                                ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100' 
+                                : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
+                            }`}
+                          >
+                            <Sparkles className={`w-4 h-4 ${matchingJobId === job.id ? 'animate-pulse' : ''}`} />
+                            {matchingJobId === job.id ? 'Analyzing...' : jobMatches[job.id] ? 'Hide Matches' : 'Find AI Matches'}
+                          </button>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm font-medium text-zinc-900">${job.salary_min} - ${job.salary_max}/mo</p>
-                      </div>
+                      
+                      {jobMatches[job.id] && (
+                        <div className="mt-4 pt-4 border-t border-zinc-100">
+                          <h4 className="font-bold text-zinc-900 mb-3 flex items-center gap-2">
+                            <Sparkles className="w-4 h-4 text-indigo-600" /> AI Recommended Candidates
+                          </h4>
+                          {jobMatches[job.id].length > 0 ? (
+                            <div className="space-y-3">
+                              {jobMatches[job.id].map((va: any) => (
+                                <div key={va.id} className="bg-zinc-50 p-4 rounded-xl border border-zinc-200">
+                                  <div className="flex justify-between items-start mb-2">
+                                    <div>
+                                      <h5 className="font-bold text-zinc-900">{va.first_name} {va.last_name}</h5>
+                                      <p className="text-sm text-zinc-500">{va.category}</p>
+                                    </div>
+                                    <div className="bg-indigo-100 text-indigo-700 px-2 py-1 rounded-md text-xs font-bold flex items-center gap-1">
+                                      <Star className="w-3 h-3 fill-indigo-700" /> {va.matchScore}% Match
+                                    </div>
+                                  </div>
+                                  <p className="text-sm text-zinc-700 mb-2">{va.bio}</p>
+                                  <div className="text-sm text-indigo-800 bg-indigo-50/50 p-2 rounded-lg border border-indigo-100">
+                                    <span className="font-semibold">AI Reasoning:</span> {va.aiReasoning}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-sm text-zinc-500">No strong matches found at this time.</p>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -210,12 +309,60 @@ export const EmployerDashboard = ({ user }: { user: UserData }) => {
           )}
 
           {activeTab === 'messages' && (
-            <div>
+            <div className="h-full flex flex-col">
               <h2 className="text-xl font-bold text-zinc-900 mb-6">Messages</h2>
-              <div className="text-center py-12 text-zinc-500 border-2 border-dashed border-zinc-200 rounded-xl">
-                <MessageSquare className="w-12 h-12 mx-auto text-zinc-300 mb-4" />
-                <p>Real-time chat interface coming soon.</p>
-                <p className="text-sm mt-2">Connects to the `messages` table.</p>
+              <div className="flex-1 flex flex-col border border-zinc-200 rounded-xl overflow-hidden h-[500px]">
+                <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-zinc-50">
+                  {messages.length === 0 ? (
+                    <div className="text-center py-12 text-zinc-500">
+                      <MessageSquare className="w-12 h-12 mx-auto text-zinc-300 mb-4" />
+                      <p>No messages yet.</p>
+                    </div>
+                  ) : (
+                    messages.map((msg) => (
+                      <div key={msg.id} className={`flex ${msg.sender_id === user.id ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`max-w-[70%] rounded-2xl px-4 py-2 ${msg.sender_id === user.id ? 'bg-indigo-600 text-white rounded-br-none' : 'bg-white border border-zinc-200 text-zinc-900 rounded-bl-none'}`}>
+                          <p>{msg.message_body}</p>
+                          <span className={`text-xs mt-1 block ${msg.sender_id === user.id ? 'text-indigo-200' : 'text-zinc-400'}`}>
+                            {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+                <div className="p-4 bg-white border-t border-zinc-200">
+                  <form 
+                    onSubmit={async (e) => {
+                      e.preventDefault();
+                      const form = e.target as HTMLFormElement;
+                      const input = form.elements.namedItem('message') as HTMLInputElement;
+                      if (!input.value.trim()) return;
+                      
+                      const { error } = await supabase.from('messages').insert({
+                        sender_id: user.id,
+                        receiver_id: 'admin', // Default receiver for now, or could be dynamic
+                        message_body: input.value.trim()
+                      });
+                      
+                      if (!error) {
+                        input.value = '';
+                        fetchMessages();
+                      }
+                    }}
+                    className="flex gap-2"
+                  >
+                    <input 
+                      name="message"
+                      type="text" 
+                      placeholder="Type a message..." 
+                      className="flex-1 px-4 py-2 border border-zinc-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                    <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700">
+                      Send
+                    </button>
+                  </form>
+                </div>
               </div>
             </div>
           )}

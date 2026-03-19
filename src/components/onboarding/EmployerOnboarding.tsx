@@ -32,24 +32,23 @@ export const EmployerOnboarding: React.FC<EmployerOnboardingProps> = ({ user, on
     setError(null);
 
     try {
-      const res = await fetch('/api/onboarding/employer', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: user.id,
+      const { data: updatedProfile, error: updateError } = await supabase
+        .from('profiles')
+        .update({
           first_name: formData.firstName,
           last_name: formData.lastName,
           company_name: formData.companyName,
-          website: formData.companyWebsite,
+          company_website: formData.companyWebsite,
         })
-      });
+        .eq('id', user.id)
+        .select()
+        .single();
 
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Failed to update profile');
+      if (updateError) {
+        throw new Error(updateError.message || 'Failed to update profile');
       }
 
-      const { user: updatedUser } = await res.json();
+      const updatedUser = { ...user, ...updatedProfile };
       localStorage.setItem('user', JSON.stringify(updatedUser));
       onComplete(updatedUser);
       navigate('/employer'); // Redirect to Employer dashboard

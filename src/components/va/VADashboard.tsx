@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Briefcase, Search, Star, ExternalLink, Filter } from 'lucide-react';
+import { Briefcase, Search, Star, ExternalLink, Filter, Sparkles } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { UserData } from '../../types';
+import { matchJobsForVA } from '../../services/aiMatching';
 
 export const VADashboard = ({ user }: { user: UserData }) => {
   const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [mySkills, setMySkills] = useState<string[]>([]);
+  const [isAiMatching, setIsAiMatching] = useState(false);
+  const [aiMatchComplete, setAiMatchComplete] = useState(false);
 
   useEffect(() => {
     fetchProfileAndJobs();
@@ -16,7 +19,7 @@ export const VADashboard = ({ user }: { user: UserData }) => {
     // 1. Fetch VA's skills from profile
     const { data: profile } = await supabase
       .from('profiles')
-      .select('detailed_skills')
+      .select('detailed_skills, bio, category')
       .eq('id', user.id)
       .single();
 
@@ -54,6 +57,34 @@ export const VADashboard = ({ user }: { user: UserData }) => {
     setLoading(false);
   };
 
+  const handleAiMatch = async () => {
+    setIsAiMatching(true);
+    
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+
+    const topJobs = jobs.slice(0, 20); // Send top 20 jobs to AI to save tokens
+    const aiResults = await matchJobsForVA(profile, topJobs);
+    
+    if (aiResults && aiResults.length > 0) {
+      const updatedJobs = jobs.map(job => {
+        const aiMatch = aiResults.find((r: any) => r.jobId === job.id);
+        if (aiMatch) {
+          return { ...job, matchScore: aiMatch.matchScore, aiReasoning: aiMatch.reasoning };
+        }
+        return job;
+      }).sort((a, b) => b.matchScore - a.matchScore);
+      
+      setJobs(updatedJobs);
+      setAiMatchComplete(true);
+    }
+    
+    setIsAiMatching(false);
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
@@ -62,6 +93,18 @@ export const VADashboard = ({ user }: { user: UserData }) => {
           <p className="text-zinc-500 mt-1">Jobs matched to your skills: {mySkills.join(', ') || 'None listed'}</p>
         </div>
         <div className="flex gap-3 w-full md:w-auto">
+          <button 
+            onClick={handleAiMatch}
+            disabled={isAiMatching || aiMatchComplete}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all ${
+              aiMatchComplete 
+                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
+                : 'bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100'
+            }`}
+          >
+            <Sparkles className={`w-5 h-5 ${isAiMatching ? 'animate-pulse' : ''}`} />
+            {isAiMatching ? 'Analyzing Matches...' : aiMatchComplete ? 'AI Match Complete' : 'Run AI Match'}
+          </button>
           <div className="relative flex-1 md:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
             <input 
@@ -95,11 +138,23 @@ export const VADashboard = ({ user }: { user: UserData }) => {
                       </p>
                     </div>
                     {job.matchScore > 0 && (
-                      <div className="bg-teal-50 text-teal-700 px-3 py-1 rounded-full text-sm font-bold flex items-center gap-1">
-                        <Star className="w-4 h-4 fill-teal-700" /> {job.matchScore}% Match
+                      <div className={`px-3 py-1 rounded-full text-sm font-bold flex items-center gap-1 ${
+                        job.aiReasoning ? 'bg-indigo-50 text-indigo-700' : 'bg-teal-50 text-teal-700'
+                      }`}>
+                        {job.aiReasoning ? <Sparkles className="w-4 h-4" /> : <Star className="w-4 h-4 fill-teal-700" />} 
+                        {job.matchScore}% Match
                       </div>
                     )}
                   </div>
+                  
+                  {job.aiReasoning && (
+                    <div className="mb-4 p-3 bg-indigo-50/50 border border-indigo-100 rounded-lg text-sm text-indigo-800">
+                      <span className="font-semibold flex items-center gap-1 mb-1">
+                        <Sparkles className="w-3 h-3" /> AI Analysis:
+                      </span>
+                      {job.aiReasoning}
+                    </div>
+                  )}
                   
                   <p className="text-zinc-700 mb-6 line-clamp-3">{job.description}</p>
                   

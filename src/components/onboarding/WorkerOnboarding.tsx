@@ -52,25 +52,27 @@ export const WorkerOnboarding: React.FC<WorkerOnboardingProps> = ({ user, onComp
     setError(null);
 
     try {
-      const res = await fetch('/api/onboarding/worker', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: user.id,
+      const { data: updatedProfile, error: updateError } = await supabase
+        .from('profiles')
+        .update({
           first_name: formData.firstName,
           last_name: formData.lastName,
           bio: formData.bio,
           category: formData.selectedCategory,
-          roles: formData.selectedRoles,
+          detailed_skills: {
+            category: formData.selectedCategory,
+            roles: formData.selectedRoles
+          },
         })
-      });
+        .eq('id', user.id)
+        .select()
+        .single();
 
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Failed to update profile');
+      if (updateError) {
+        throw new Error(updateError.message || 'Failed to update profile');
       }
 
-      const { user: updatedUser } = await res.json();
+      const updatedUser = { ...user, ...updatedProfile };
       localStorage.setItem('user', JSON.stringify(updatedUser));
       onComplete(updatedUser);
       navigate('/va'); // Redirect to VA dashboard
